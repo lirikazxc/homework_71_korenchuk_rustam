@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block content %}
+    {% for user in users %}
+        <div class="container mt-5">
+            <div class="card user-card p-2">
+                <div class="d-flex align-items-center">
+                    <img src="{{ user.avatar.url }}" alt="Profile Picture" class="rounded-circle" width="50" height="50">
+                    <div class="ml-3">
+                        <h6 class="mb-0"><a href="{% url 'accounts:profile' user.pk %}">
+                            {{ user.username }}</a></h6>
+                        <small class="text-muted">{{ user.first_name }}</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+{% endblock %}

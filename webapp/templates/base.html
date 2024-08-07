@@ -22,10 +22,22 @@
         </button>
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav">
+                {% url 'accounts:users' as users_list %}
+
+                <form class="d-flex" action="{% url 'accounts:users' %}" method="get">
+                    {{ search_form.search }}
+
+                    <button class="btn btn-outline-success" type="submit">Search</button>
+                </form>
+            
+
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url "accounts:users" %}">Пользователи</a>
+                </li>
 
                 {% block link %}
                 {% endblock %}
-            
+
                 {% if request.user.is_authenticated %}
                     <li class="nav-item">
                         <a class="nav-link" href="{% url "accounts:logout" %}">Выход</a>

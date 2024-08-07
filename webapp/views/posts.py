@@ -1,8 +1,7 @@
-from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
-from django.http import HttpResponseRedirect, HttpResponseBadRequest
-from django.shortcuts import get_object_or_404, redirect
-from django.urls import reverse_lazy, reverse
+from django.http import HttpResponseRedirect
+from django.shortcuts import get_object_or_404
+from django.urls import reverse
 from django.views import View
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 
@@ -18,7 +17,10 @@ class PostsListView(ListView):
     ordering = ("-created_at",)
 
     def get_queryset(self):
-        return super().get_queryset()
+        posts = super().get_queryset()
+        if self.request.user.is_authenticated and not self.request.user.has_perm("webapp.view_post"):
+            posts = posts.filter(author__in=self.request.user.following.all())
+        return posts
 
 
 class PostCreateView(LoginRequiredMixin, CreateView):
@@ -34,9 +36,10 @@ class PostUpdateView(PermissionRequiredMixin, UpdateView):
     model = Post
     form_class = PostForm
     template_name = "posts/post_update.html"
+    permission_required = "webapp.change_post"
 
     def has_permission(self):
-        return self.request.user == self.get_object().author
+        return self.request.user == self.get_object().author or super().has_permission()
 
 
 class PostDeleteView(PermissionRequiredMixin, DeleteView):
@@ -53,3 +56,17 @@ class PostDeleteView(PermissionRequiredMixin, DeleteView):
 class PostDetailView(DetailView):
     queryset = Post.objects.all()
     template_name = "posts/post_view.html"
+
+
+class LikePostView(LoginRequiredMixin, View):
+
+    def get(self, request, *args, pk, **kwargs):
+        post = get_object_or_404(Post, pk=pk)
+        if request.user in post.like_users.all():
+            post.like_users.remove(request.user)
+        else:
+            post.like_users.add(request.user)
+        return HttpResponseRedirect(self.request.GET.get("next", reverse("webapp:posts_list")))
+
+
+
