@@ -1,6 +1,8 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
+from accounts.manager import UserManager
+
 GENDER_MALE = 0
 GENDER_FEMALE = 1
 GENDER_CHOICES = [(GENDER_MALE, 'Male'), (GENDER_FEMALE, 'Female')]
@@ -13,8 +15,12 @@ class User(AbstractUser):
     gender = models.IntegerField(choices=GENDER_CHOICES)
     followers = models.ManyToManyField('self', related_name='following', symmetrical=False)
 
+    REQUIRED_FIELDS = []
+
+    objects = UserManager()
+
     def __str__(self):
-        return self.user.username
+        return self.username
 
     class Meta:
         db_table = 'users'
